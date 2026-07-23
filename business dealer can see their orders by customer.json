@@ -1,0 +1,337 @@
+{
+  "name": "business dealer can see their orders by customer",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -16,
+        -32
+      ],
+      "id": "3d553a72-0a49-4cf7-bc7d-d3c534c2f7fe",
+      "name": "When chat message received",
+      "webhookId": "7af1f607-b7bb-442f-982a-cc2f4adcbc21"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "Append a new customer order to Google Sheets.\n\nUse this tool ONLY when ALL of the following are true:\n\n- Name is available\n- Product is available\n- Quantity is available\n- Email is available\n- Address is available\n- Size is available\n- Phone Number is available\n\nAND\n\nThe customer has replied exactly \"YES\" to confirm the order.\n\nAppend exactly one row.\n\nNever execute more than once."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        256,
+        -16
+      ],
+      "id": "2f4f02ca-689a-4227-94ab-34c00b9627d8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        160
+      ],
+      "id": "34b6c91b-7bcb-43c3-bb9c-11e27f4b30a4",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CakYvHfEF3BnLoDe",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        352,
+        176
+      ],
+      "id": "38e0fd85-6ef2-43e5-87d7-6046a811521d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the FAQ sheet.\n\nUse this tool ONLY for:\n- return policy\n- shipping\n- order process\n- business hours\n- payment methods\n- cancellation\n- exchange\n\nReturn the matching answer.",
+        "documentId": {
+          "__rl": true,
+          "value": "1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        176
+      ],
+      "id": "cbb8819e-262b-4265-846f-9a4e015e289b",
+      "name": "FAQ Search",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wEETqsipA497Xbf2",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the clothing inventory.\n\nUse this tool ONLY for:\n- product name\n- brand\n- size\n- colour\n- stock\n- price\n- category\n\nReturn matching products.",
+        "documentId": {
+          "__rl": true,
+          "value": "1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1781935961,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI/edit#gid=1781935961"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        128
+      ],
+      "id": "988f5777-472b-4f80-81d6-35fb28a1a120",
+      "name": "Clothing Search",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wEETqsipA497Xbf2",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search customer orders from the Google Sheet.\n\nUse this tool whenever the customer asks about an existing order or when you need to retrieve order information.\n\nSearch using any of these fields:\n- Name\n- Product\n- Quantity\n- Email\n- Address\n- Size\n- Phone Number\n\nReturn the matching row from the Google Sheet.\n\nDo not make up information. Always use the data returned by this tool.",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI",
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 676575718,
+          "mode": "list",
+          "cachedResultName": "Sheet4",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gEnapX63RKeOyIIUe3SK9A64md2kTx3_y02xJYMJLyI/edit#gid=676575718"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Name', ``, 'string') }}",
+            "Product": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Product', ``, 'string') }}",
+            "Quantity": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Quantity', ``, 'string') }}",
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', ``, 'string') }}",
+            "Address": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Address', ``, 'string') }}",
+            "Size": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Size', ``, 'string') }}",
+            "Phone Number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Phone_Number', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Product",
+              "displayName": "Product",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Size",
+              "displayName": "Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        768,
+        128
+      ],
+      "id": "822b665c-4435-4327-b3d3-155d76f6bfa0",
+      "name": "order",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wEETqsipA497Xbf2",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clothing Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "order": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "61dd7885-3508-4ef5-be2f-e9664e1d347e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a4a2ea2c3d7a9a031b265c66baac633b898dc5193dc77735a4e7e1f98e261ff3"
+  },
+  "nodeGroups": [],
+  "id": "qyJbXqLRtZGDp3mv",
+  "tags": []
+}
